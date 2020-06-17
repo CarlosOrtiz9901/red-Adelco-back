@@ -1,37 +1,37 @@
-import { Injectable } from '@nestjs/common';
-import { OrganizationRepository } from './organization.repository';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Organizacion } from 'src/entities/Organizacion';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Municipio } from '../entities/Municipio';
 import { Productores } from '../entities/Productores';
 import { UpdateOrganizationDto } from './dto/updateOrganization.dto';
+import { CreateOrganizationDto } from './dto/createOrganizacion.dto';
+import { Organizacion } from '../entities/Organizacion';
+import { RemoveOrganizationProducersDto } from './dto/removeOrganizationProducers.dto';
+import { ProductorOrganizacion } from '../entities/ProductorOrganizacion';
+import { CreateProducerOrganizationDto } from './dto/createProducerOrganization.dto';
 
 @Injectable()
 export class organizationService {
 
   constructor(
-    @InjectRepository(OrganizationRepository) private readonly _OrganizationRepository: OrganizationRepository,
+    @InjectRepository(Organizacion) private readonly _OrganizationRepository: Repository<Organizacion>,
     @InjectRepository(Municipio) private readonly _MunicipioRepository: Repository<Municipio>,
-    @InjectRepository(Productores) private readonly producersRepository: Repository<Productores>
+    @InjectRepository(Productores) private readonly producersRepository: Repository<Productores>,
+    @InjectRepository(ProductorOrganizacion) private readonly ProductorOrganizacionRepository: Repository<ProductorOrganizacion>,
   ) { }
 
-  async createOrganization(signupOrganization) {
+  async createOrganization(body: CreateOrganizationDto) {
+    try {
+      await this._OrganizationRepository.save({ ...body });
 
-    const { nombre, contacto, idVereda2, representante2, descripcion, temaCapacitacion, temaEmpresarial } = signupOrganization
-    const newOrganization = await new Organizacion()
-    newOrganization.nombre = nombre
-    newOrganization.contacto = contacto
-    newOrganization.idVereda2 = idVereda2
-    newOrganization.representante2 = representante2
-    newOrganization.descripcion = descripcion
-    newOrganization.temaEmpresarial = temaEmpresarial
-    newOrganization.temaCapacitacion = temaCapacitacion
-    return await newOrganization.save()
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
   }
 
   async getMunicipio() {
-    const municipios = await this._OrganizationRepository.find({
+    const municipios = await this._MunicipioRepository.find({
       relations: ['veredas']
     })
     return municipios
@@ -53,6 +53,43 @@ export class organizationService {
     await this._OrganizationRepository.update(body.id, body)
 
     return { success: 'OK' }
+  }
+
+  async removeOrganizationProductor(body: RemoveOrganizationProducersDto) {
+    const exist = await this.ProductorOrganizacionRepository.findOne({ where: { id: body.id } })
+    const organization = await this._OrganizationRepository.findOne({ where: { id: body.idOrganizacion } })
+    const producer = await this.producersRepository.findOne({ where: { dni: body.dniProductor } })
+
+    if (!exist)
+      return { error: 'PRODUCTOR_ORGANIZATION_NOT_EXIST', detail: '¡No hay productores registrados en organizaciones!' }
+    if (!organization)
+      return { error: 'ORGANIZATION_NOT_EXIST', detail: '¡La Organización no existe!' }
+    if (!producer)
+      return { error: 'PRODUCER_NOT_EXIST', detail: '¡El Productor no existe!' }
+
+    await this.ProductorOrganizacionRepository.update(exist.id, { estado: body.estado });
+
+    return { success: 'OK' }
+  }
+
+  async createProducerOrganization(body: CreateProducerOrganizationDto) {
+    const organization = await this._OrganizationRepository.findOne({ where: { id: body.idOrganizacion } });
+    const producer = await this.producersRepository.findOne({ where: { dni: body.dniProductor } });
+
+    if (!organization)
+      return { error: 'ORGANIZATION_NOT_EXIST', detail: '¡La Organización no existe!' }
+    if (!producer)
+      return { error: 'PRODUCER_NOT_EXIST', detail: '¡El Productor no existe!' }
+
+    try {
+      await this.ProductorOrganizacionRepository.save({
+        dniProductor: { dni: producer.dni }, idOrganizacion:{id:organization.id}
+      });
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+
   }
 
   async countPersonsOrganization(idOrganization: number) {

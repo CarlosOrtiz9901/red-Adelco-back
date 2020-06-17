@@ -1,12 +1,5 @@
-import {
-  Column,
-  Entity,
-  Index,
-  JoinColumn,
-  ManyToOne,
-  OneToMany
-} from "typeorm";
-import { Cultivo } from "./Cultivo";
+import {  Column,  Entity,  Index,  JoinColumn,  ManyToOne,  OneToMany} from "typeorm";
+import { Aft } from "./Aft";
 import { Genero } from "./Genero";
 import { Organizacion } from "./Organizacion";
 import { Conflicto } from "./Conflicto";
@@ -18,18 +11,22 @@ import { ProductorOrg } from "./ProductorOrg";
 import { CargoOrg } from "./CargoOrg";
 import { Parentesco } from "./Parentesco";
 import { Finca } from "./Finca";
+import { Cultivo } from "./Cultivo";
+import { ProductorOrganizacion } from "./ProductorOrganizacion";
+import { Zona } from "./Zona";
 
-@Index("id", ["id"], {})
+@Index('id', ['id'], {})
+@Index('dni', ['dni'], { unique: true })
 @Index("id_cargo_org", ["idCargoOrg"], {})
 @Index("id_conflicto", ["idConflicto"], {})
 @Index("id_discapacitado", ["idDiscapacitado"], {})
 @Index("id_etnia", ["idEtnia"], {})
 @Index("id_finca", ["idFinca"], {})
 @Index("id_genero", ["idGenero"], {})
-@Index("id_organizacion", ["idOrganizacion"], {})
+@Index("id_zona", ["idZona"], {})
 @Index("id_parentesco", ["idParentesco"], {})
 @Index("id_productor", ["idProductor"], {})
-@Entity("productores", { schema: "redadelco" })
+@Entity("productores", { schema: "tcsp_database" })
 export class Productores {
   @Column("varchar", { name: "id", length: 145 })
   id: string;
@@ -51,15 +48,12 @@ export class Productores {
 
   @Column("varchar", { name: "id_productor", nullable: true, length: 45 })
   idProductor: string | null;
-
+ 
   @Column("int", { name: "id_conflicto", nullable: true })
   idConflicto: number | null;
 
   @Column("int", { name: "id_genero" })
   idGenero: number;
-
-  @Column("int", { name: "id_organizacion", nullable: true })
-  idOrganizacion: number | null;
 
   @Column("int", { name: "id_finca", nullable: true })
   idFinca: number | null;
@@ -79,11 +73,14 @@ export class Productores {
   @Column("int", { name: "id_cargo_org", nullable: true })
   idCargoOrg: number | null;
 
-  @OneToMany(
-    () => Cultivo,
-    cultivo => cultivo.dniProductor2
-  )
-  cultivos: Cultivo[];
+/*   @Column("int", { name: "id_municipio", nullable: true })
+  idMunicipio: number | null;
+
+  @Column("int", { name: "id_vereda", nullable: true })
+  idVereda: number | null;
+
+  @Column("int", { name: "id_linea_productiva", nullable: true })
+  idLineaProductiva: number | null; */
 
   @ManyToOne(
     () => Genero,
@@ -127,11 +124,13 @@ export class Productores {
   )
   kitUsers: KitUser[];
 
-  @OneToMany(
-    () => Cultivo,
-    cultivo => cultivo.codigoProductor2
+  @ManyToOne(
+    () => Zona,
+    Zona => Zona.producers,
+    { onDelete: "NO ACTION", onUpdate: "NO ACTION" }
   )
-  cultivos2: Cultivo[];
+  @JoinColumn([{ name: "id_kit", referencedColumnName: "id" }])
+  idZona2: Zona;
 
   @OneToMany(
     () => Organizacion,
@@ -160,14 +159,6 @@ export class Productores {
   )
   @JoinColumn([{ name: "id_etnia", referencedColumnName: "id" }])
   idEtnia2: GrupoEtnico;
-
-  @ManyToOne(
-    () => Organizacion,
-    organizacion => organizacion.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
-  @JoinColumn([{ name: "id_organizacion", referencedColumnName: "id" }])
-  idOrganizacion2: Organizacion;
 
   @OneToMany(
     () => ProductorOrg,
@@ -198,4 +189,24 @@ export class Productores {
   )
   @JoinColumn([{ name: "id_finca", referencedColumnName: "id" }])
   idFinca2: Finca;
+
+  @OneToMany(
+    () => Aft, aft => aft.idProductor2)
+  afts: Aft[];
+
+  @OneToMany(
+    () => Cultivo,
+    cultivo => cultivo.dniProductor2
+  )
+  cultivos: Cultivo[];
+
+  @OneToMany(
+    () => Cultivo,
+    cultivo => cultivo.codigoProductor2
+  )
+  cultivos2: Cultivo[];
+
+  @OneToMany(() => ProductorOrganizacion, productor_organizacion => productor_organizacion.dniProductor )
+  productoresOrganizaciones: ProductorOrganizacion[];
+
 }

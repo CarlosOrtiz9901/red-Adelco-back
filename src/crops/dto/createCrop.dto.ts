@@ -13,6 +13,7 @@ export class CreateCropDto {
     idLineaProductiva: number;
 
     @IsOptional()
+    @IsString()
     codigoProductor: string;
 
     @IsNumber()
@@ -20,6 +21,7 @@ export class CreateCropDto {
     idAcepta: number;
 
     @IsOptional()
+    @IsNumber()
     dniProductor: number;
 
     @IsNumber()
@@ -29,4 +31,16 @@ export class CreateCropDto {
     @IsNumber()
     @IsOptional()
     idVereda: number;
+
+    @IsOptional()
+    @IsString()
+    posicionAcepta: string;
+
+    @IsOptional()
+    @IsString()
+    entidadPerteneciente: string;
+
+    @IsOptional()
+    @IsString()
+    trabajoPrincipal: string;
 }

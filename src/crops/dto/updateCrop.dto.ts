@@ -13,6 +13,10 @@ export class UpdateCropDto {
   @IsOptional()
   fechaInicio: string;
 
+  @IsString()
+  @IsOptional()
+  posicionAcepta: string;
+
   @IsNumber()
   @IsOptional()
   idLineaProductiva: number;
@@ -35,4 +39,12 @@ export class UpdateCropDto {
   @IsNumber()
   @IsOptional()
   idVereda: number;
+
+  @IsOptional()
+  @IsString()
+  entidadPerteneciente: string;
+
+  @IsOptional()
+  @IsString()
+  trabajoPrincipal: string;
 }

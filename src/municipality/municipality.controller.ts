@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Put, Get, Param, Query } from '@nestjs/common';
+import { Controller, Post, Body, Put, Get, Query } from '@nestjs/common';
 import { MunicipalityService } from './municipality.service';
 import { CreateTownDto } from './dto/createTown.dto';
 import { UpdateTownDto } from './dto/updateTown.dto';
@@ -13,6 +13,11 @@ export class MunicipalityController {
     return await this.municipalityService.createTown(body);
   }
 
+  @Post('create/municipality')
+  async createMunicipality(@Body() body: CreateTownDto) {
+    return await this.municipalityService.createMunicipality(body);
+  }
+
   @Put('update/town')
   async updateTowb(@Body() body: UpdateTownDto) {
     return await this.municipalityService.updateTown(body);
@@ -24,8 +29,8 @@ export class MunicipalityController {
   }
 
   @Get('quantity/Organizations-Municipality')
-  async quantityOrganizationsMunicipality(@Query('municipalityId') municipalityId: number) {
-    return await this.municipalityService.quantityOrganizationsMunicipality(municipalityId);
+  async quantityOrganizationsMunicipality() {
+    return await this.municipalityService.quantityOrganizationsMunicipality();
   }
 
 }

@@ -1,13 +1,11 @@
 import { Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
-import { UserRepository } from "./user.repository";
 import { InjectRepository } from "@nestjs/typeorm";
-import { LoginDto } from "src/auth/dto/login.dto";
+import { UserRepository } from "./user.repository";
+import { LoginDto } from "../auth/dto/login.dto";
 
 @Injectable()
 export class UserService {
-  constructor(
-    @InjectRepository(UserRepository)
-    private readonly _userRepository: UserRepository,
+  constructor(@InjectRepository(UserRepository) private readonly _userRepository: UserRepository,
   ) { }
 
   async findOne(user: string) {
@@ -24,9 +22,7 @@ export class UserService {
   }
 
   async getAll() {
-    const users = await this._userRepository.find({});
-
-    return users
+    return await this._userRepository.find();
   }
 
   async get(id: number) {

@@ -1,10 +1,10 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Infraestructura } from 'src/entities/Infraestructura';
 import { Repository } from 'typeorm';
-import { TipoInfraestructura } from 'src/entities/TipoInfraestructura';
-import { Vereda } from 'src/entities/Vereda';
-import { Municipio } from 'src/entities/Municipio';
+import { Vereda } from '../entities/Vereda';
+import { Municipio } from '../entities/Municipio';
+import { Infraestructura } from '../entities/Infraestructura';
+import { TipoInfraestructura } from '../entities/TipoInfraestructura';
 import { UpdateInfrastructureDto } from './dto/updateInfrastructure.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class InfrastructuresService {
   ) { }
 
   async createInfrastructure(infraestructura) {
-    const { covertura, descripcion, direccion, idTypeInfraestructura, idVereda, nombre, planos, responsable } = infraestructura
+    const { covertura, descripcion, direccion, idTypeInfraestructura, idVereda, nombre, planos, responsable, estado } = infraestructura
 
     const typeInfraestructura = await this.TipoInfraestructuraRepository.findOne({
       where: { id: idTypeInfraestructura }
@@ -41,6 +41,7 @@ export class InfrastructuresService {
     newInfraestructura.nombre = nombre;
     newInfraestructura.planos = planos;
     newInfraestructura.responsable = responsable;
+    newInfraestructura.estado = estado;
 
     return await newInfraestructura.save()
   }
