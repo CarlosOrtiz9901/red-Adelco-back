@@ -40,8 +40,18 @@ export class organizationController {
     return await this._organizationService.getOrganizacion();
   }
 
+  @Get('get/by')
+  async getByIdOrganization(@Query('id') idOrganization: number) {
+    return await this._organizationService.getByIdOrganization(idOrganization);
+  }
+
+  @Get('get/producer-organization')
+  async getPrododucerOrganization() {
+    return await this._organizationService.getPrododucerOrganization();
+  }
+
   @Get('count/persons-organization')
-  async countPersonsOrganization(@Query('idOrganization') idOrganization: number) {
+  async countPersonsOrganization(@Query('id') idOrganization: number) {
     return await this._organizationService.countPersonsOrganization(idOrganization);
   }
 

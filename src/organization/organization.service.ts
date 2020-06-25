@@ -45,6 +45,26 @@ export class organizationService {
       .getMany()
   }
 
+  async getByIdOrganization(idOrganization: number) {
+    const organization = await this._OrganizationRepository.findOne({
+      relations: ['afts', 'socio2', 'idVereda2', 'representante2', 'idIco2', 'productoresOrganizaciones',
+        'productoresOrganizaciones.dniProductor'], where: { id: idOrganization }
+    });
+
+    if (!organization)
+      return { error: 'ORGANIZATION_NOT_EXIST', detail: 'La organizacion no existe' };
+
+    return organization;
+  }
+
+  async getPrododucerOrganization() {
+    return await this._OrganizationRepository.createQueryBuilder()
+      .innerJoinAndSelect('Organizacion.productoresOrganizaciones', 'productoresOrganizaciones')
+      .innerJoinAndSelect('productoresOrganizaciones.dniProductor', 'productor')
+      .where("productoresOrganizaciones.estado='activo'")
+      .getMany();
+  }
+
   async updateOrganization(body: UpdateOrganizationDto) {
     const exist = await this._OrganizationRepository.findOne({ select: ["nombre"], where: { id: body.id } })
     if (!exist)
@@ -83,59 +103,63 @@ export class organizationService {
 
     try {
       await this.ProductorOrganizacionRepository.save({
-        dniProductor: { dni: producer.dni }, idOrganizacion:{id:organization.id}
+        dniProductor: { dni: producer.dni }, idOrganizacion: { id: organization.id }
       });
       return { success: 'OK' }
     } catch (error) {
       return { error }
     }
-
   }
 
   async countPersonsOrganization(idOrganization: number) {
-    const countPersons = await this.producersRepository.createQueryBuilder()
-      .select('count(Productores.id)', 'countPeople')
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .where('organizacion.id =:idOrganization', { idOrganization })
-      .getRawOne()
+    const countProducers = await this.ProductorOrganizacionRepository.createQueryBuilder()
+      .select('count(Productores.id)', 'countProducers')
+      .innerJoin('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoin('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .where("Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .getRawOne();
 
-    const datePersons = await this.producersRepository.createQueryBuilder()
-      .select(['Productores.nombres', 'Productores.apellidos', 'Productores.dni', 'Productores.edad', 'Productores.telefono'])
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .where('organizacion.id =:idOrganization', { idOrganization })
-      .getManyAndCount()
+    const dataProducers = await this.ProductorOrganizacionRepository.createQueryBuilder()
+      .innerJoinAndSelect('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .innerJoinAndSelect('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoinAndSelect('Productores.idGenero', 'Genero')
+      .where("Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .orderBy('ProductorOrganizacion.id','ASC')
+      .getMany();
 
-    const countWoman = await this.producersRepository.createQueryBuilder()
+    const countWoman = await this.ProductorOrganizacionRepository.createQueryBuilder()
       .select('count(Genero.id)', 'countWoman')
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .where('Genero.id=2 and organizacion.id =:idOrganization', { idOrganization })
-      .getRawOne()
+      .innerJoin('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .innerJoin('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoin('Productores.idGenero', 'Genero')
+      .where("Genero.key='woman' AND Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .execute();
 
+    const dataWoman = await this.ProductorOrganizacionRepository.createQueryBuilder()
+      .innerJoinAndSelect('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .innerJoinAndSelect('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoinAndSelect('Productores.idGenero', 'Genero')
+      .where("Genero.key='woman' AND Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .orderBy('ProductorOrganizacion.id','ASC')
+      .getMany();
 
+    const dataMan = await this.ProductorOrganizacionRepository.createQueryBuilder()
+      .innerJoinAndSelect('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .innerJoinAndSelect('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoinAndSelect('Productores.idGenero', 'Genero')
+      .where("Genero.key='man' AND Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .orderBy('ProductorOrganizacion.id','ASC')
+      .getMany();
 
-    const dateWoman = await this.producersRepository.createQueryBuilder()
-      .select(['Productores.nombres', 'Productores.apellidos', 'Productores.dni', 'Productores.edad', 'Productores.telefono'])
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .where('Genero.id=2 and organizacion.id =:idOrganization', { idOrganization })
-      .getManyAndCount()
-
-    const dateMan = await this.producersRepository.createQueryBuilder()
-      .select(['Productores.nombres', 'Productores.apellidos', 'Productores.dni', 'Productores.edad', 'Productores.telefono'])
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .where('Genero.id=1 and organizacion.id =:idOrganization', { idOrganization })
-      .getManyAndCount()
-
-    const countMan = await this.producersRepository.createQueryBuilder()
+    const countMan = await await this.ProductorOrganizacionRepository.createQueryBuilder()
       .select('count(Genero.id)', 'countMan')
-      .innerJoin('Productores.idOrganizacion2', 'organizacion')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .where('Genero.id=1 and organizacion.id =:idOrganization', { idOrganization })
-      .getRawOne()
+      .innerJoin('ProductorOrganizacion.idOrganizacion', 'Organizacion')
+      .innerJoin('ProductorOrganizacion.dniProductor', 'Productores')
+      .innerJoin('Productores.idGenero', 'Genero')
+      .where("Genero.key='man' AND Organizacion.id =:idOrganization AND ProductorOrganizacion.estado='activo'", { idOrganization })
+      .getRawOne();
 
-    return { countPersons, datePersons, countWoman, dateWoman, countMan, dateMan }
+    return { countProducers, countWoman, countMan, dataProducers, dataWoman, dataMan }
   }
 
 }

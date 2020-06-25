@@ -63,16 +63,23 @@ export class InfrastructuresService {
     return { municipio, typeInfraestructura }
   }
 
+  async getById(idInfrastructure: number) {
+    return await this.infraestructuraRepository.find({
+      relations: ['convenios', 'idTipoObra2', 'idVereda2', 'idVereda2.idMunicipio2'],
+      where: { id: idInfrastructure },
+      order: { id: 'ASC' }
+    });
+  }
+
   async updateInfrastructure(body: UpdateInfrastructureDto) {
-    const exist = await this.infraestructuraRepository.findOne({ select: ["nombre"], where: { id: body.id } })
+    const exist = await this.infraestructuraRepository.findOne({ where: { id: body.id } })
     if (!exist)
       return { error: 'INFRASTRUCTURE_NOT_EXIST', detail: '¡La Infrastructura no existe!' }
-
-    const response = await this.infraestructuraRepository.update(body.id, body)
-
-    if (!response)
-      return { error: 'DATA_ENTERED_INCORRECTLY', detail: '¡Los datos se han ingresado incorrectamente!' }
-
-    return { success: 'OK' }
+    try {
+      await this.infraestructuraRepository.update(body.id, body)
+      return { success: 'OK' }
+    } catch (err) {
+      return err
+    }
   }
 }

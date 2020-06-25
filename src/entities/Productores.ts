@@ -25,18 +25,21 @@ import { User } from "./User";
 @Index("id_finca", ["idFinca"], {})
 @Index("id_genero", ["idGenero"], {})
 @Index("id_zona", ["idZona"], {})
-@Index("id_parentesco", ["idParentesco"], {})
 @Index("id_productor", ["idProductor"], {})
+@Index("id_parentesco", ["idParentesco"], {})
 @Entity("productores", { schema: "tcsp_database" })
 export class Productores {
-  @Column("varchar", {nullable: true, name: "id", length: 145 })
+  @Column("varchar", { nullable: true, name: "id", length: 145 })
   id: string | null;
 
-  @Column("longtext", { name: "nombres" })
-  nombres: string;
+  @Column("longtext", { name: "nombres",nullable: true  })
+  nombres: string | null;
 
-  @Column("longtext", { name: "apellidos" })
-  apellidos: string;
+  @Column("longtext", { name: "apellidos",nullable: true  })
+  apellidos: string | null;
+
+  @Column("longtext", { nullable: true })
+  entidad: string | null;
 
   @Column("int", { primary: true, name: "dni" })
   dni: number;
@@ -47,171 +50,137 @@ export class Productores {
   @Column("varchar", { name: "telefono", nullable: true, length: 10 })
   telefono: string | null;
 
-  @Column("varchar", { name: "id_productor", nullable: true, length: 45 })
-  idProductor: string | null;
+  @Column("varchar", { nullable: true, length: '50', default: 'active' })
+  state: string | null;
 
-  @Column("int", { name: "id_conflicto", nullable: true })
-  idConflicto: number | null;
+  @Column("datetime", { name: "fecha_inicio", nullable: true })
+  fechaInicio: string | null;
 
-  @Column("int", { name: "id_genero" })
-  idGenero: number;
+  @Column("datetime", { name: "fecha_fin", nullable: true })
+  fechaFin: string | null;
 
-  @Column("int", { name: "id_finca", nullable: true })
-  idFinca: number | null;
+  @Column("varchar", { name: "escuela_agroforesteria", nullable: true, length: 50 })
+  escuelaAgroforesteria: string | null;
 
-  @Column("int", { name: "id_etnia", nullable: true })
-  idEtnia: number | null;
+  @Column("varchar", { name: "escuela_agrosilvopastoril", nullable: true, length: 50 })
+  escuelaAgrosilvopastoril: string | null;
 
-  @Column("int", { name: "id_parentesco", nullable: true })
-  idParentesco: number | null;
+  @Column("varchar", { name: "escuela_aromaticas", nullable: true, length: 50 })
+  escuelaAromaticas: string | null;
 
-  @Column("int", { name: "id_discapacitado", nullable: true })
-  idDiscapacitado: number | null;
+  @Column("varchar", { name: "escuela_permacultura", nullable: true, length: 50 })
+  escuelaPermacultura: string | null;
 
-  @Column("int", { name: "id_zona", nullable: true })
-  idZona: number | null;
+  @Column("varchar", { name: "escuela_srcacao", nullable: true, length: 50 })
+  escuelaSRCacao: string | null;
 
-  @Column("int", { name: "id_cargo_org", nullable: true })
-  idCargoOrg: number | null;
+  @Column("varchar", { name: "escuela_srpnmb", nullable: true, length: 50 })
+  escuelaSRPNMB: string | null;
 
-  @Column("varchar", { nullable: false, length: '50', default: 'active' })
-  state: string;
+  @Column("varchar", { name: "parcela_demostrativa", nullable: true, length: 50 })
+  parcelaDemostrativa: string | null;
 
-  /*   @Column("int", { name: "id_municipio", nullable: true })
-    idMunicipio: number | null;
-  
-    @Column("int", { name: "id_vereda", nullable: true })
-    idVereda: number | null;
-  
-    @Column("int", { name: "id_linea_productiva", nullable: true })
-    idLineaProductiva: number | null; */
+  @Column("varchar", { name: "cacao_planadas", nullable: true, length: 50 })
+  cacaoPlanadas: string | null;
 
-  @ManyToOne(
-    () => Genero,
-    genero => genero.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
+  @Column("varchar", { name: "cana_panelera", nullable: true, length: 50 })
+  canaPanelera: string | null;
+
+  @Column("varchar", { name: "intercambio_huitora", nullable: true, length: 50 })
+  intercambioHuitora: string | null;
+
+  @Column("varchar", { name: "gira_pnmb", nullable: true, length: 50 })
+  giraPNMB: string | null;
+
+  @Column("varchar", { name: "gira_cacao", nullable: true, length: 50 })
+  giraCacao: string | null;
+
+  @Column("varchar", { name: "poscosecha_cacao", nullable: true, length: 50 })
+  poscosechaCacao: string | null;
+
+  @Column("varchar", { name: "transformacion_pulpas", nullable: true, length: 50 })
+  transformacionPulpas: string | null;
+
+  @Column("varchar", { name: "manejo_ecosistemico", nullable: true, length: 50 })
+  manejoEcosistemico: string | null;
+
+  @Column("varchar", { name: "transformacion_chocolate", nullable: true, length: 50 })
+  transformacionChocolate: string | null;
+
+  @Column("varchar", { name: "certificado_organica", nullable: true, length: 50 })
+  certificadoOrganica: string | null;
+
+  @Column("varchar", { name: "transformacion_pnmb", nullable: true, length: 50 })
+  transformacionPNMB: string | null;
+
+  @Column("varchar", { name: "fitosanitario_cultivos", nullable: true, length: 50 })
+  fitosanitarioCultivos: string | null;
+
+  @ManyToOne(() => Genero, genero => genero.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
   @JoinColumn([{ name: "id_genero", referencedColumnName: "id" }])
-  idGenero2: Genero;
+  idGenero: Genero | null;
 
-  @OneToMany(
-    () => Organizacion,
-    organizacion => organizacion.socio2
-  )
-  organizacions: Organizacion[];
-
-  @ManyToOne(
-    () => Conflicto,
-    conflicto => conflicto.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
+  @ManyToOne(() => Conflicto, conflicto => conflicto.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
   @JoinColumn([{ name: "id_conflicto", referencedColumnName: "id" }])
-  idConflicto2: Conflicto;
+  idConflicto: Conflicto | null;
 
-  @ManyToOne(
-    () => Discapacidad,
-    discapacidad => discapacidad.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
+  @ManyToOne(() => Discapacidad, discapacidad => discapacidad.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
   @JoinColumn([{ name: "id_discapacitado", referencedColumnName: "id" }])
-  idDiscapacitado2: Discapacidad;
+  idDiscapacitado: Discapacidad | null;
 
-  @OneToMany(
-    () => ProductoresBeneficio,
-    productoresBeneficio => productoresBeneficio.idProductor2
-  )
-  productoresBeneficios: ProductoresBeneficio[];
-
-  @OneToMany(
-    () => KitUser,
-    kitUser => kitUser.idProductor2
-  )
-  kitUsers: KitUser[];
-
-  @ManyToOne(
-    () => Zona,
-    Zona => Zona.producers,
-    { onDelete: "NO ACTION", onUpdate: "NO ACTION" }
-  )
+  @ManyToOne(() => Zona, Zona => Zona.producers, { onDelete: "NO ACTION", onUpdate: "CASCADE" })
   @JoinColumn([{ name: "id_kit", referencedColumnName: "id" }])
-  idZona2: Zona;
+  idZona: Zona | null;
 
-  @OneToMany(
-    () => Organizacion,
-    organizacion => organizacion.representante2
-  )
-  organizacions2: Organizacion[];
-
-  @ManyToOne(
-    () => Productores,
-    productores => productores.productores,
-    { onDelete: "NO ACTION", onUpdate: "NO ACTION" }
-  )
+  @ManyToOne(() => Productores, productores => productores.productores, { onDelete: "NO ACTION", onUpdate: "CASCADE" })
   @JoinColumn([{ name: "id_productor", referencedColumnName: "id" }])
-  idProductor2: Productores;
+  idProductor: Productores | null;
 
-  @OneToMany(
-    () => Productores,
-    productores => productores.idProductor2
-  )
+  @ManyToOne(() => GrupoEtnico, grupoEtnico => grupoEtnico.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @JoinColumn([{ name: "id_etnia", referencedColumnName: "id" }])
+  idEtnia: GrupoEtnico | null;
+
+  @ManyToOne(() => CargoOrg, cargoOrg => cargoOrg.productores, { onDelete: "NO ACTION", onUpdate: "CASCADE" } )
+  @JoinColumn([{ name: "id_cargo_org", referencedColumnName: "id" }])
+  idCargoOrg: CargoOrg | null;
+
+  @ManyToOne(() => Parentesco, parentesco => parentesco.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @JoinColumn([{ name: "id_parentesco" }])
+  idParentesco: Parentesco | null;
+
+  @ManyToOne(() => Finca, finca => finca.productores, { onDelete: "CASCADE", onUpdate: "CASCADE" })
+  @JoinColumn([{ name: "id_finca", referencedColumnName: "id" }])
+  idFinca: Finca | null;
+
+  @OneToMany(() => Productores, productores => productores.idProductor)
   productores: Productores[];
 
-  @ManyToOne(
-    () => GrupoEtnico,
-    grupoEtnico => grupoEtnico.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
-  @JoinColumn([{ name: "id_etnia", referencedColumnName: "id" }])
-  idEtnia2: GrupoEtnico;
+  @OneToMany(() => Organizacion, organizacion => organizacion.representante2)
+  organizacions: Organizacion[];
 
-  @OneToMany(
-    () => ProductorOrg,
-    productorOrg => productorOrg.idProductor2
-  )
+  @OneToMany(() => ProductorOrg, productorOrg => productorOrg.idProductor)
   productorOrgs: ProductorOrg[];
 
-  @ManyToOne(
-    () => CargoOrg,
-    cargoOrg => cargoOrg.productores,
-    { onDelete: "NO ACTION", onUpdate: "NO ACTION" }
-  )
-  @JoinColumn([{ name: "id_cargo_org", referencedColumnName: "id" }])
-  idCargoOrg2: CargoOrg;
+  @OneToMany(() => Organizacion, organizacion => organizacion.socio2)
+  organizacionSocios: Organizacion[];
 
-  @ManyToOne(
-    () => Parentesco,
-    parentesco => parentesco.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
-  @JoinColumn([{ name: "id_parentesco", referencedColumnName: "id" }])
-  idParentesco2: Parentesco;
+  @OneToMany(() => KitUser, kitUser => kitUser.idProductor)
+  kitUsers: KitUser[];
 
-  @ManyToOne(
-    () => Finca,
-    finca => finca.productores,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
-  )
-  @JoinColumn([{ name: "id_finca", referencedColumnName: "id" }])
-  idFinca2: Finca;
-
-  @OneToMany(
-    () => Aft, aft => aft.idProductor2)
+  @OneToMany(() => Aft, aft => aft.idProductor)
   afts: Aft[];
 
-  @OneToMany(
-    () => Cultivo,
-    cultivo => cultivo.dniProductor2
-  )
+  @OneToMany(() => Cultivo, cultivo => cultivo.dniProductor2)
   cultivos: Cultivo[];
 
-  @OneToMany(
-    () => Cultivo,
-    cultivo => cultivo.codigoProductor2
-  )
+  @OneToMany(() => Cultivo, cultivo => cultivo.codigoProductor2)
   cultivos2: Cultivo[];
 
   @OneToMany(() => ProductorOrganizacion, productor_organizacion => productor_organizacion.dniProductor)
   productoresOrganizaciones: ProductorOrganizacion[];
+
+  @OneToMany(() => ProductoresBeneficio, productoresBeneficio => productoresBeneficio.idProductor)
+  productoresBeneficios: ProductoresBeneficio[];
 
   @OneToOne(() => User, User => User.dniProducer,)
   user: User;

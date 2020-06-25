@@ -9,9 +9,12 @@ export class Genero {
   @Column("longtext", { name: "nombre", nullable: true })
   nombre: string | null;
 
+  @Column("varchar", { nullable: true })
+  key: string | null;
+
   @OneToMany(
     () => Productores,
-    productores => productores.idGenero2
+    productores => productores.idGenero
   )
   productores: Productores[];
 }

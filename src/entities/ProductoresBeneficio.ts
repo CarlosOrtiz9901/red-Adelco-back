@@ -10,10 +10,10 @@ export class ProductoresBeneficio {
   id: number;
 
   @Column("datetime", { name: "fecha_inicio", nullable: true })
-  fechaInicio: Date | null;
+  fechaInicio: string | null;
 
   @Column("datetime", { name: "fecha_fin", nullable: true })
-  fechaFin: Date | null;
+  fechaFin: string | null;
 
   @Column("varchar", { name: "escuela_agroforesteria", nullable: true, length: 50 })
   escuelaAgroforesteria: string | null;
@@ -72,25 +72,22 @@ export class ProductoresBeneficio {
   @Column("varchar", { name: "fitosanitario_cultivos", nullable: true, length: 50 })
   fitosanitarioCultivos: string | null;
 
-  @Column("varchar", { name: "id_productor", nullable: true, length: 45 })
-  idProductor: string | null;
-
   @Column("int", { name: "id_beneficio", nullable: true })
   idBeneficio: number | null;
 
   @ManyToOne(
     () => Productores,
     productores => productores.productoresBeneficios,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
+    { onDelete: "CASCADE", onUpdate: "CASCADE" }
   )
   @JoinColumn([{ name: "id_productor", referencedColumnName: "id" }])
-  idProductor2: Productores;
+  idProductor: Productores | null;
 
   @ManyToOne(
     () => Beneficio,
     beneficio => beneficio.productoresBeneficios,
-    { onDelete: "CASCADE", onUpdate: "NO ACTION" }
+    { onDelete: "CASCADE", onUpdate: "CASCADE" }
   )
   @JoinColumn([{ name: "id_beneficio", referencedColumnName: "id" }])
-  idBeneficio2: Beneficio;
+  idBeneficio2: Beneficio| null;
 }

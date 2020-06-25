@@ -21,6 +21,12 @@ import { KitUser } from '../entities/KitUser';
 import { Genero } from '../entities/Genero';
 import { Kit } from '../entities/Kit';
 import { Aft } from '../entities/Aft';
+import { CreateTypeToolDto } from './dto/createTypeTool.dto';
+import { UpdateTypeToolDto } from './dto/updateTypeTool.dto';
+import { UpdateProducerDto } from './dto/UpdateProducer.dto';
+import { UpdateAftDto } from './dto/updateAft.dto';
+import { Beneficio } from '../entities/Beneficio';
+import { CreateBeneficiaryDto } from './dto/createBenefit.dto';
 
 @Injectable()
 export class ProducersService {
@@ -42,7 +48,8 @@ export class ProducersService {
     @InjectRepository(TipoHerramienta) private readonly typeToolRepository: Repository<TipoHerramienta>,
     @InjectRepository(KitHerramienta) private readonly kitToolRepository: Repository<KitHerramienta>,
     @InjectRepository(KitUser) private readonly kitUserRepository: Repository<KitUser>,
-    @InjectRepository(Aft) private readonly aftRepository: Repository<Aft>
+    @InjectRepository(Aft) private readonly aftRepository: Repository<Aft>,
+    @InjectRepository(Beneficio) private readonly benefitRepository: Repository<Beneficio>,
 
   ) { }
 
@@ -77,21 +84,55 @@ export class ProducersService {
     return producers
   }
 
-  async updateProducer(body) {
-    const producerExists = await this._ProducersRepository.findOne({
-      where: { dni: body.dni },
-    });
+  async updateProducer(body: UpdateProducerDto) {
+    const producerExists = await this._ProducersRepository.findOne({ where: { dni: body.dni } });
 
-    if (!producerExists) throw new ConflictException('producer does not exist');
+    if (!producerExists)
+      return { error: 'PRODUCER_NOT_EXIST', detail: 'El productor no existe!' }
 
-    const { dni, ...results } = body
+    try {
+      await this._ProducersRepository.update(producerExists.dni, {
+        id: body.id,
+        nombres: body.nombres,
+        apellidos: body.apellidos,
+        edad: body.edad,
+        telefono: body.telefono,
+        state: body.state,
+        entidad: body.entidad,
+        fechaInicio: body.fechaInicio,
+        fechaFin: body.fechaFin,
+        escuelaAgroforesteria: body.escuelaAgroforesteria,
+        escuelaAgrosilvopastoril: body.escuelaAgrosilvopastoril,
+        escuelaAromaticas: body.escuelaAromaticas,
+        escuelaPermacultura: body.escuelaPermacultura,
+        escuelaSRCacao: body.escuelaSRCacao,
+        escuelaSRPNMB: body.escuelaSRPNMB,
+        parcelaDemostrativa: body.parcelaDemostrativa,
+        cacaoPlanadas: body.cacaoPlanadas,
+        canaPanelera: body.canaPanelera,
+        intercambioHuitora: body.intercambioHuitora,
+        giraPNMB: body.giraPNMB,
+        giraCacao: body.giraCacao,
+        poscosechaCacao: body.poscosechaCacao,
+        transformacionPulpas: body.transformacionPulpas,
+        manejoEcosistemico: body.manejoEcosistemico,
+        transformacionChocolate: body.transformacionChocolate,
+        certificadoOrganica: body.certificadoOrganica,
+        transformacionPNMB: body.transformacionPNMB,
+        fitosanitarioCultivos: body.fitosanitarioCultivos,
+        idZona: { id: body.idZona },
+        idGenero: { id: body.idGenero },
+        idProductor: { id: body.idProductor },
+        idConflicto: { id: body.idConflicto },
+        idFinca: { id: body.idFinca },
+        idParentesco: { id: body.idParentesco },
+        idCargoOrg: { id: body.idCargoOrg },
+      });
 
-    console.log(results)
-
-    const producers = await this._ProducersRepository
-      .update(dni, results)
-
-    return producers
+      return { success: 'OK' }
+    } catch (err) {
+      return err
+    }
   }
 
   async getProducerGender() {
@@ -144,15 +185,15 @@ export class ProducersService {
 
   async getProducerDate() {
     return await this._ProducersRepository.createQueryBuilder("producer")
-      .leftJoinAndSelect("producer.idGenero2", "gender")
-      .leftJoinAndSelect("producer.idEtnia2", "etnia")
+      .leftJoinAndSelect("producer.idGenero", "gender")
+      .leftJoinAndSelect("producer.idEtnia", "etnia")
       .leftJoinAndSelect("producer.productoresOrganizaciones", "productoresOrganizaciones")
       .leftJoinAndSelect("productoresOrganizaciones.idOrganizacion", "organizacion")
-      .leftJoinAndSelect("producer.idConflicto2", "conflicto")
-      .leftJoinAndSelect("producer.idDiscapacitado2", "discapacitado")
-      .leftJoinAndSelect("producer.idProductor2", "productor")
-      .leftJoinAndSelect("producer.idParentesco2", "parentesco")
-      .leftJoinAndSelect("producer.idCargoOrg2", "cargoOrg")
+      .leftJoinAndSelect("producer.idConflicto", "conflicto")
+      .leftJoinAndSelect("producer.idDiscapacitado", "discapacitado")
+      .leftJoinAndSelect("producer.idProductor", "productor")
+      .leftJoinAndSelect("producer.idParentesco", "parentesco")
+      .leftJoinAndSelect("producer.idCargoOrg", "cargoOrg")
       .getMany()
   }
 
@@ -188,7 +229,7 @@ export class ProducersService {
       .addSelect(['LineaProductiva.nombre'])
       .addSelect(['CadenaProductiva.nombre'])
       .innerJoin('Cultivo.dniProductor2', 'Productor')
-      .innerJoin('Productor.idGenero2', 'Genero')
+      .innerJoin('Productor.idGenero', 'Genero')
       .innerJoin('Cultivo.idMunicipio2', 'Municipio')
       .innerJoin('Cultivo.idVereda2', 'Vereda')
       .innerJoin('Cultivo.idLineaProductiva2', 'LineaProductiva')
@@ -204,8 +245,8 @@ export class ProducersService {
       .addSelect(['Genero.nombre'])
       .addSelect(['Conflicto.nombre'])
       .innerJoin('Productores.cultivos2', 'Cultivo')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .innerJoin('Productores.idConflicto2', 'Conflicto')
+      .innerJoin('Productores.idGenero', 'Genero')
+      .innerJoin('Productores.idConflicto', 'Conflicto')
       .where("Conflicto.nombre= 'Victima'")
       .getMany()
 
@@ -214,8 +255,8 @@ export class ProducersService {
       .addSelect(['Genero.nombre'])
       .addSelect(['Conflicto.nombre'])
       .leftJoin('Productores.cultivos2', 'Cultivo')
-      .leftJoin('Productores.idGenero2', 'Genero')
-      .leftJoin('Productores.idConflicto2', 'Conflicto')
+      .leftJoin('Productores.idGenero', 'Genero')
+      .leftJoin('Productores.idConflicto', 'Conflicto')
       .where("Conflicto.nombre = 'Excombatiente'")
       .getMany()
 
@@ -224,8 +265,8 @@ export class ProducersService {
       .addSelect(['Genero.nombre'])
       .addSelect(['Conflicto.nombre'])
       .innerJoin('Productores.cultivos2', 'Cultivo')
-      .innerJoin('Productores.idGenero2', 'Genero')
-      .innerJoin('Productores.idConflicto2', 'Conflicto')
+      .innerJoin('Productores.idGenero', 'Genero')
+      .innerJoin('Productores.idConflicto', 'Conflicto')
       .where("Conflicto.nombre = 'No Aplica'")
       .getMany()
 
@@ -237,7 +278,7 @@ export class ProducersService {
       .innerJoinAndSelect('Cultivo.dniProductor2', 'Productor')
       .innerJoinAndSelect('Productor.productoresOrganizaciones', 'productoresOrganizaciones')
       .innerJoinAndSelect('productoresOrganizaciones.idOrganizacion', 'idOrganizacion')
-      .innerJoinAndSelect('Productor.idGenero2', 'Genero')
+      .innerJoinAndSelect('Productor.idGenero', 'Genero')
       .innerJoinAndSelect('Cultivo.idMunicipio2', 'Municipio')
       .innerJoinAndSelect('Cultivo.idVereda2', 'Vereda')
       .innerJoinAndSelect('Cultivo.idLineaProductiva2', 'LineaProductiva')
@@ -247,15 +288,15 @@ export class ProducersService {
 
   async getProducerById(id, dni) {
     return await this._ProducersRepository.findOne({
-      relations: ['idGenero2', 'productoresOrganizaciones', 'productoresOrganizaciones.idOrganizacion', 'idConflicto2', 'idDiscapacitado2',
-        'idEtnia2', 'idParentesco2', 'productoresBeneficios', 'productoresBeneficios.idBeneficio2',
+      relations: ['idGenero', 'productoresOrganizaciones', 'productoresOrganizaciones.idOrganizacion', 'idConflicto', 'idDiscapacitado',
+        'idEtnia', 'idParentesco', 'productoresBeneficios', 'productoresBeneficios.idBeneficio2',
         'productoresBeneficios.idBeneficio2.idTipoBeneficio2', 'kitUsers', 'kitUsers.idKitHerramienta2',
         'kitUsers.idKitHerramienta2.idKit2'],
       where: [{ id }, { dni }]
     })
   }
 
-  /* Ojo */
+
   async createProducerBeneficiary(body: CreateProducerBeneficiaryDto) {
     const producer = await this._ProducersRepository.findOne({
       select: ['id', 'nombres', 'dni'],
@@ -266,10 +307,44 @@ export class ProducersService {
       return { error: 'PRODUCER_NOT_EXIST', detail: 'El productor no se encuentra en la base de datos.' }
 
     try {
-      await this.productoresBeneficioRepository.save({
+      const producerBenediciary = await this.productoresBeneficioRepository.save({
         ...body,
-        idProductor2: { id: producer.id }
+        idProductor: { id: producer.id }
+      });
+
+      await this.productoresBeneficioRepository.update(producerBenediciary.id, {
+        fechaInicio: body.fechaInicio,
+        fechaFin: body.fechaFin,
+        idBeneficio2: { id: body.idBeneficiary }
       })
+
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  async createBeneficiary(body: CreateBeneficiaryDto) {
+    try {
+      await this.benefitRepository.save({ ...body });
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  async updateBeneficiary(body: CreateBeneficiaryDto) {
+    const benefit = await this.benefitRepository.findOne({ where: { id: body.idBeneficio } });
+    if (!benefit)
+      return { error: 'BENEFIT_NOT_EXIST', detail: 'El beneficio no existe.' }
+
+    try {
+      await this.benefitRepository.update(benefit.id, {
+        nombre: body.nombre,
+        intencidad: body.intencidad,
+        idTipoBeneficio2: { id: body.idTipoBeneficio }
+      });
+
       return { success: 'OK' }
     } catch (error) {
       return { error }
@@ -278,26 +353,24 @@ export class ProducersService {
 
   async updateProducerBeneficiary(body: UpdateProducerBeneficiaryDto) {
     const producer = await this._ProducersRepository.findOne({
-      select: ['id', 'nombres', 'dni'],
-      where: { id: body.idProductor2 }
-    })
+      where: { id: body.idProductor }
+    });
 
     const producerBeneficiary = await this.productoresBeneficioRepository.findOne({
-      select: ['id'],
       where: { id: body.id }
-    })
+    });
 
     if (!producerBeneficiary)
       return { error: 'PRODUCER_BENEFICIARY_NOT_EXIST', detail: 'El productor no tiene ningun beneficio registrado.' }
-    else if (!producer)
+    if (!producer)
       return { error: 'PRODUCER_NOT_EXIST', detail: 'El productor no se encuentra en la base de datos.' }
 
     try {
       await this.productoresBeneficioRepository.update(producerBeneficiary.id, {
         ...body,
-        idProductor2: { id: producer.id }, idBeneficio2: { id: body.idBeneficio2 }
+        idProductor: { id: producer.id }, idBeneficio2: { id: body.idBeneficio2 }
+      });
 
-      })
       return { success: 'OK' }
     } catch (error) {
       return { error }
@@ -307,42 +380,70 @@ export class ProducersService {
   async getAllKitsProducer() {
     return await this.kitRepository.createQueryBuilder()
       .innerJoinAndSelect('Kit.kitUsers', 'kitUsers')
-      .innerJoinAndSelect('kitUsers.idProductor2', 'idProductor2')
+      .innerJoinAndSelect('kitUsers.idProductor', 'idProductor')
       .leftJoinAndSelect('kitUsers.idKitHerramienta2', 'idKitHerramienta2')
       .leftJoinAndSelect('idKitHerramienta2.idHerramienta2', 'idHerramienta2')
-      .leftJoinAndSelect('idHerramienta2.idTipoHerramienta2', 'idTipoHerramienta2') 
+      .leftJoinAndSelect('idHerramienta2.tipoHerramienta', 'tipoHerramienta')
       .getMany();
   }
 
   async getKit() {
-    return await this.kitRepository.find({})
+    return await this.kitRepository.find({});
   }
 
   async createKitTool(body: CreateKitDto) {
     const producer = await this._ProducersRepository.findOne({
       select: ['id', 'nombres', 'dni'],
       where: { id: body.idProducer }
-    })
+    });
+
+    const typeTool = await this.typeToolRepository.findOne({ where: { id: body.typeTool } })
 
     if (!producer)
       return { error: 'PRODUCER_NOT_EXIST', detail: 'El productor no se encuentra en la base de datos.' }
+    if (!typeTool)
+      return { error: 'TYPE_TOOL_NOT_EXIST', detail: 'El tipo de herramienta no se encuentra en la base de datos.' }
 
     try {
       const kit = await this.kitRepository.save({
         nombre: body.kitName, imageActa: body.imagenActa
-      })
+      });
 
       const tool = await this.toolRepository.save({
-        descripcion: body.toolDetail, idTipoHerramienta2: { id: body.idTypeTool }
-      })
+        descripcion: body.toolDetail, tipoHerramienta: { id: typeTool.id }
+      });
 
       const kitTool = await this.kitToolRepository.save({
         idHerramienta2: { id: tool.id }, idKit2: { id: kit.id }
-      })
+      });
 
       await this.kitUserRepository.save({
-        idProductor2: { id: body.idProducer }, idKitHerramienta2: { id: kitTool.id }, idKit2: { id: kit.id }
-      })
+        idProductor: { id: body.idProducer }, idKitHerramienta2: { id: kitTool.id }, idKit2: { id: kit.id }
+      });
+
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  async createTypeTool(body: CreateTypeToolDto) {
+    try {
+      await this.typeToolRepository.save({ ...body });
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  async updateTypeTool(body: UpdateTypeToolDto) {
+    const typeTool = await this.typeToolRepository.findOne({ where: { id: body.id } });
+
+    if (!typeTool)
+      return { error: 'TYPE_TOOL_NOT_EXIST', detail: 'El tipo de herramienta no existe!' }
+
+    try {
+      await this.typeToolRepository.update(typeTool.id, { ...body });
 
       return { success: 'OK' }
     } catch (error) {
@@ -351,14 +452,14 @@ export class ProducersService {
   }
 
   async getAllTypeTool() {
-    return await this.typeToolRepository.find({})
+    return await this.typeToolRepository.find({});
   }
 
   async createKit(body: CreateKitDto) {
     try {
       await this.kitRepository.save({
         nombre: body.kitName, imageActa: body.imagenActa
-      })
+      });
       return { success: 'OK' }
     } catch (error) {
       return { error }
@@ -383,7 +484,7 @@ export class ProducersService {
 
     try {
       await this.kitUserRepository.save({
-        idProductor2: { id: producer.id }, idKit2: { id: kit.id }
+        idProductor: { id: producer.id }, idKit2: { id: kit.id }
       })
 
       return { success: 'OK' }
@@ -416,7 +517,37 @@ export class ProducersService {
         idMunicipio2: { id: body.idMunicipio },
         dv: body.dv,
         nit: body.nit,
-        idProductor2: { dni: body.producerDni }
+        idProductor: { dni: body.producerDni }
+      })
+
+      return { success: 'OK' }
+    } catch (error) {
+      return { error }
+    }
+  }
+
+  async updateAft(body: UpdateAftDto) {
+    const aft = await this.aftRepository.findOne({ where: { dni: body.id } });
+
+    if (!aft)
+      return { error: 'AFT_NOT_EXIST', detail: 'El Aft no se encuentra en la base de datos.' }
+
+    try {
+      await this.aftRepository.update(aft.id, {
+        idOrganizacion2: { id: body.idOrganizacion },
+        valorAft: body.valorAft,
+        fechaEntrega: body.fechaEntrega,
+        cuenta: body.cuenta,
+        tipoCuenta: body.tipoCuenta,
+        banco: body.banco,
+        documento: body.documento,
+        matricula: body.matricula,
+        email: body.email,
+        avances: body.avances,
+        idMunicipio2: { id: body.idMunicipio },
+        dv: body.dv,
+        nit: body.nit,
+        idProductor: { dni: body.producerDni }
       })
 
       return { success: 'OK' }
@@ -432,10 +563,8 @@ export class ProducersService {
   async getKitProducerDni(dni: number) {
     return await this._ProducersRepository.find({
       relations: ['kitUsers', 'kitUsers.idKit2', 'kitUsers.idKitHerramienta2', 'kitUsers.idKitHerramienta2.idHerramienta2',
-        'kitUsers.idKitHerramienta2.idHerramienta2.idTipoHerramienta2'],
+        'kitUsers.idKitHerramienta2.idHerramienta2.tipoHerramienta'],
       where: { dni }
     })
   }
-
-
 }
